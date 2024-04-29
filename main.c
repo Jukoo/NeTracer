@@ -18,7 +18,6 @@ int main (int ac , char **av )
     errx(~0 , "<ipv4 address>"); 
 
   char errbuf[PCAP_ERRBUF_SIZE] ={0} ; 
-  char* device =  ( void * )0  ; 
   pcap_if_t  * netdevs ;
   bpf_u_int32 netip , maskip ; 
   pcap_t  *handler ;
@@ -36,11 +35,14 @@ int main (int ac , char **av )
     errx(PCAP_ERROR , "pcap_findalldevs : %s" , errbuf) ; 
   }
   
-  device = net_found_active_interface(netdevs , device) ;
-
+  active_idev_lists  _device  ; 
+  active_idev_lists  *device = net_found_active_interface(netdevs , &_device); 
+  printf("%s :::" ,  device->idev) ; 
+  
   if (!device)  
     errx(-1, "No Connected adaptater found") ; 
 
+  /* 
 
   if(PCAP_ERROR == pcap_lookupnet(device , &netip , &maskip , errbuf)) {
     free(device) ; 
@@ -48,6 +50,7 @@ int main (int ac , char **av )
     errx(PCAP_ERROR , "pcap_lookupnet: %s" , errbuf) ; 
   }
 
+   * */
    struct __raw_iproto  rip ; 
    (void *)net_translate(&rip , 2,  netip , maskip) ; 
 

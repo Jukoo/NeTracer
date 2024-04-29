@@ -35,11 +35,22 @@ typedef struct __raw_iproto  raw_iproto ;
 struct __raw_iproto {
   union { 
     char ipv4[NET_IPV4_LENGTH] ; 
-    char * ipv6 ; 
+    char * ipv6 ; //! not supported yet !!  
   } ; 
   char subnet_mask[NET_IPV4_LENGTH] ; 
 }; 
 
+typedef struct __active_idev_lists active_idev_lists ; 
+struct  __active_idev_lists 
+{
+   char  idev[NET_IPV4_LENGTH];  
+   struct __active_idev_lists *  next ;  
+} ;  
+struct _idevs   { 
+  struct  __active_idev_lists *  current_idev ; 
+}; 
+
+extern   char error_buff[PCAP_ERRBUF_SIZE] ; 
 /**
  * @fn bint is_valid_ipv4_address
  * @brief check if string address is a valid ip address 
@@ -55,9 +66,16 @@ net_is_valid_ipv4_addr(char * __restrict__ __ipv4_addr);
  * @param pcap_if_t *  interfaces 
  * @param char *      
  * @return  char *   null for failure 
+ * !TODO : struct  __device_t {  
+ *    char * device ; 
+ *    char * description  ; 
+ *    int inet ; 
+ * }
  */ 
-NETH char *
-net_found_active_interface(pcap_if_t * __raw_interface ,  char *__restrict__); 
+NETH struct __active_idev_lists *
+net_found_active_interface(pcap_if_t * __raw_interface ,  struct __active_idev_lists * ); 
+
+
 
 /**
  *  @fn net_translate 

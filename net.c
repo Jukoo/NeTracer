@@ -8,10 +8,11 @@
 #include <stdarg.h>
 #include <net/ethernet.h> 
 #include <fmtmsg.h> 
+#include <assert.h> 
 
 #include "net.h"
 
-
+char error_buff[PCAP_ERRBUF_SIZE] = {0} ; 
 bint net_is_valid_ipv4_addr(char * restrict ipv4_addr_string)
 {
   SADDR_IN sa ;  
@@ -21,22 +22,43 @@ bint net_is_valid_ipv4_addr(char * restrict ipv4_addr_string)
 
 }
 
-char * net_found_active_interface(pcap_if_t  * raw_net_interface , char * restrict  active_idev) 
+struct __active_idev_lists * 
+net_found_active_interface(pcap_if_t  * raw_net_interface , struct __active_idev_lists * idev)   
 {
 
+  struct  _idev  * c  ;  
   while (raw_net_interface  != nullable){
     
     int  interface_status_check =  raw_net_interface->flags  & PCAP_IF_CONNECTION_STATUS ; 
     
-    if (interface_status_check ==  PCAP_IF_CONNECTION_STATUS_CONNECTED)
-      active_idev = strdup(raw_net_interface->name) ; 
-    
+    if (interface_status_check ==  PCAP_IF_CONNECTION_STATUS_CONNECTED) { 
+      char *connected_idev = raw_net_interface->name ; 
+      ///active_idev = strdup(raw_net_interface->name) ; 
+      char *phylayer_protobuff = (char *)  raw_net_interface->addresses->addr ; 
+      struct sockaddr_in *in =  (struct sockaddr_in *) phylayer_protobuff  ; 
+      bpf_u_int32 netp  , maskp ; 
+      int status =  pcap_lookupnet (connected_idev  ,  &netp , &maskp ,  error_buff) ; 
+      if  (PCAP_ERROR ==  status) {
+        raw_net_interface = raw_net_interface->next ; 
+        continue ; 
+      }
+      
+      struct __active_idev_lists * new_active_idevs =  (struct __active_idev_lists *) \
+                               malloc(sizeof(*new_active_idevs)); 
+      if (! new_active_idevs) 
+        return nullable ; 
 
+      memcpy(new_active_idevs->idev ,  connected_idev , strlen(connected_idev)) ;  
+      new_active_idevs->next = nullable ; 
+    }   
+
+    
     raw_net_interface = raw_net_interface->next ;  
+    idev = 
   }
 
 
-  return active_idev ; 
+  return idev ; 
 
 }
 
