@@ -40,15 +40,13 @@ struct __raw_iproto {
   char subnet_mask[NET_IPV4_LENGTH] ; 
 }; 
 
-typedef struct __active_idev_lists active_idev_lists ; 
-struct  __active_idev_lists 
+typedef struct __active_inet_devices active_inetdevs ; 
+struct  __active_inet_devices   
 {
-   char  idev[NET_IPV4_LENGTH];  
-   struct __active_idev_lists *  next ;  
-} ;  
-struct _idevs   { 
-  struct  __active_idev_lists *  current_idev ; 
-}; 
+   char  *idev ;   
+   struct __active_inet_devices *  next ;  
+} ; 
+
 
 extern   char error_buff[PCAP_ERRBUF_SIZE] ; 
 /**
@@ -72,8 +70,8 @@ net_is_valid_ipv4_addr(char * __restrict__ __ipv4_addr);
  *    int inet ; 
  * }
  */ 
-NETH struct __active_idev_lists *
-net_found_active_interface(pcap_if_t * __raw_interface ,  struct __active_idev_lists * ); 
+NETH struct __active_inet_devices *
+net_found_active_interface(pcap_if_t * __raw_interface ,  struct __active_inet_devices * ); 
 
 
 
@@ -98,4 +96,12 @@ net_translate(struct __raw_iproto *  , int index ,  ...) ;
 NETH void
 net_handler(u_char * __device_adpter  , const struct pcap_pkthdr * __packet_headr  , const u_char* __raw_byte_packet) ;  
 
+
+
+NETH struct  __active_inet_devices * 
+append_inetdev(struct __active_inet_devices  *  , struct __active_inet_devices  * new_idev)  ; 
+ 
+
+NETH  void 
+list_inetdevs (const struct __active_inet_devices * __inet_devices) ; 
 #endif 

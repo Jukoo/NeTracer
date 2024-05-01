@@ -35,13 +35,13 @@ int main (int ac , char **av )
     errx(PCAP_ERROR , "pcap_findalldevs : %s" , errbuf) ; 
   }
   
-  active_idev_lists  _device  ; 
-  active_idev_lists  *device = net_found_active_interface(netdevs , &_device); 
-  printf("%s :::" ,  device->idev) ; 
+  active_inetdevs  *idevices = nullable ;  
+  idevices = net_found_active_interface(netdevs , idevices); 
   
-  if (!device)  
+  if (!idevices)  
     errx(-1, "No Connected adaptater found") ; 
 
+   list_inetdevs(idevices) ; 
   /* 
 
   if(PCAP_ERROR == pcap_lookupnet(device , &netip , &maskip , errbuf)) {
@@ -57,18 +57,18 @@ int main (int ac , char **av )
  
   printf("ipv4 : %s\n",  rip.ipv4) ; 
   printf("net mask : %s\n" , rip.subnet_mask) ; 
-
   
-  handler =  pcap_open_live(device , BUFSIZ,  0 ,10, errbuf)  ; 
+  //handler = net_stream_on(null ,) ; // if null start on first devices  
+  handler =  pcap_open_live(idevices  , BUFSIZ,  0 ,10, errbuf)  ; 
   if (!handler){
-    free(device) ; 
+    free(idevices) ; 
     pcap_freealldevs(netdevs) ; 
     errx(~0 ,  "pcap_open_live:: %s", errbuf) ; 
   }
 
   pcap_loop(handler, 0, net_handler , nullable) ; 
 
-  free(device) ; 
+  free(idevices) ; 
   pcap_freealldevs(netdevs); 
 
   

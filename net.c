@@ -22,43 +22,43 @@ bint net_is_valid_ipv4_addr(char * restrict ipv4_addr_string)
 
 }
 
-struct __active_idev_lists * 
-net_found_active_interface(pcap_if_t  * raw_net_interface , struct __active_idev_lists * idev)   
+struct __active_inet_devices * 
+net_found_active_interface(pcap_if_t  * raw_net_interface , struct __active_inet_devices * inetdevs)   
 {
-
-  struct  _idev  * c  ;  
+  
   while (raw_net_interface  != nullable){
     
     int  interface_status_check =  raw_net_interface->flags  & PCAP_IF_CONNECTION_STATUS ; 
     
     if (interface_status_check ==  PCAP_IF_CONNECTION_STATUS_CONNECTED) { 
-      char *connected_idev = raw_net_interface->name ; 
-      ///active_idev = strdup(raw_net_interface->name) ; 
-      char *phylayer_protobuff = (char *)  raw_net_interface->addresses->addr ; 
-      struct sockaddr_in *in =  (struct sockaddr_in *) phylayer_protobuff  ; 
+      char *connected_inetdev = raw_net_interface->name ;
       bpf_u_int32 netp  , maskp ; 
-      int status =  pcap_lookupnet (connected_idev  ,  &netp , &maskp ,  error_buff) ; 
+      //! check  if the device has ipv4 address   
+      int status =  pcap_lookupnet (connected_inetdev  ,  &netp , &maskp ,  error_buff) ;
+      
       if  (PCAP_ERROR ==  status) {
         raw_net_interface = raw_net_interface->next ; 
         continue ; 
       }
-      
-      struct __active_idev_lists * new_active_idevs =  (struct __active_idev_lists *) \
-                               malloc(sizeof(*new_active_idevs)); 
-      if (! new_active_idevs) 
+
+      struct __active_inet_devices * new_active_inetdev =  (struct __active_inet_devices *) \
+                               malloc(sizeof(*new_active_inetdev)); 
+
+      if (! new_active_inetdev)
+      {
         return nullable ; 
+      }
 
-      memcpy(new_active_idevs->idev ,  connected_idev , strlen(connected_idev)) ;  
-      new_active_idevs->next = nullable ; 
-    }   
-
+      new_active_inetdev->idev = strdup(connected_inetdev) ;  
+      
+      inetdevs = append_inetdev(inetdevs ,   new_active_inetdev) ; 
+    } 
     
     raw_net_interface = raw_net_interface->next ;  
-    idev = 
   }
 
 
-  return idev ; 
+  return inetdevs ; 
 
 }
 
@@ -126,5 +126,26 @@ void net_handler(u_char * device , const struct pcap_pkthdr * pkhdr ,  const u_c
      }
   }
 
+}
+
+struct __active_inet_devices * append_inetdev(struct  __active_inet_devices  * idevs , struct __active_inet_devices *  new_inetdev) 
+{ 
+  struct __active_inet_devices * hold  = idevs ; //new_inetdev;  
+  printf("new inet device  %s \n" , new_inetdev->idev) ; 
+  idevs =  new_inetdev ; 
+  idevs->next  = hold ; 
+  // new_inetdev->next = idevs   ; 
+
+  return idevs  ;   
+}
+
+void list_inetdevs (const struct __active_inet_devices  * inetdevs) 
+{ 
+  struct __active_inet_devices * inetdevs_hold= (struct __active_inet_devices *) inetdevs ;   
   
+  while (inetdevs_hold != nullable) 
+  {
+    printf("-> %s\n" , inetdevs_hold->idev) ; 
+    inetdevs_hold =  inetdevs_hold->next ; 
+  }
 }
