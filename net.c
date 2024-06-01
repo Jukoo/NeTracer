@@ -30,10 +30,9 @@ net_found_active_interface(pcap_if_t  * raw_net_interface , struct __active_inet
 
   while (raw_net_interface  != nullable){
     
-    interface_status_check =  raw_net_interface->flags  & PCAP_IF_CONNECTION_STATUS ;
+    interface_status_check =  raw_net_interface->flags  & PCAP_IF_CONNECTION_STATUS ; 
     
-    if (interface_status_check ==  PCAP_IF_CONNECTION_STATUS_CONNECTED) {  
-
+    if (interface_status_check ==  PCAP_IF_CONNECTION_STATUS_CONNECTED) { 
 
       struct __active_inet_devices * new_active_inetdev =  (struct __active_inet_devices *) \
                                malloc(sizeof(*new_active_inetdev)); 
@@ -76,7 +75,6 @@ net_get_idev_info(const char  * restrict   idevname)
 
    struct  in_addr  address[2] ; 
  
-   printf("subnet mask   %i  ::   %x\n " , subnetip ,subnetip) ;
 
    int subnetclass =    SUBN_MASK & subnetip  ; 
 
@@ -84,9 +82,13 @@ net_get_idev_info(const char  * restrict   idevname)
    address[1].s_addr = subnetip ;  
    
    
-  
+   //!get  net ip address  
    memcpy(idev_info->ipv4netnum , inet_ntoa( *(address+0) ) , NET_IPV4_LENGTH) ; 
+   
+   //!get subnet mask 
    memcpy(idev_info->subnet_mask , inet_ntoa( *(address+1) ) , NET_IPV4_LENGTH) ; 
+
+   //!get  net class type 
    idev_info->class_type  =  _GSTRCLS(subnetclass) ; 
 
 
@@ -102,16 +104,29 @@ net_get_idev_info(const char  * restrict   idevname)
 
 void net_handler(u_char * device , const struct pcap_pkthdr * pkhdr ,  const u_char * raw_packet_bytes)  
 {
- 
+
+
   printf("size of raw packet bytes %i\n" , strlen(raw_packet_bytes)) ; 
   
   //!Extract  Ethernet Trame from  raw_packet_bytes 
   struct ether_header  *ethn  = (struct ether_header *) raw_packet_bytes ;
-  
+ 
   uint16_t  eth_type =  ntohs(ethn->ether_type) ;
+  if ( (sizeof(*ethn) & 0x0f )  !=  ETHER_HEADER_LEN )  
+    fprintf(stderr , "corrupted  raw_packet Byte payload\n"); 
+
+  if ( ETHER_IS_VALID_LEN(sizeof(*ethn)) )  
+    puts("valid") ; 
+  else  
+    puts("no valid") ; 
+
+     printf("sizeof  of header eth packet   %i\n" ,  sizeof(*ethn)) ; 
+     //!  ETHERTYE_IP ->  ETH_P_IP <linux/if_ether.h> 
   if (eth_type == ETHERTYPE_IP)  {
      //! Extract  IP Datagrame 
      struct iphdr * ip = (struct iphdr *) (raw_packet_bytes   + sizeof(struct ether_header)) ; 
+
+
      char s[10] ={0} ; 
      sprintf(s ,"::%i\n",   ip->protocol) ;
      
@@ -164,4 +179,14 @@ char * net_get_device_name(struct __active_inet_devices  *idevs)
 {
    
   return   (idevs->idev && strlen(idevs->idev) > 0 )  ?  idevs->idev   : nullable  ;  
+}
+
+void show_idevinfo(const struct __idev_info_t *  idevinfo) 
+{
+  if (!idevinfo)return ; 
+  fprintf(stdout , "net ip:: %s \n" , idevinfo->ipv4netnum ) ;  
+  fprintf(stdout , "subnet mask:: %s \n" , idevinfo->subnet_mask ) ;  
+  fprintf(stdout , "class Type :: %s \n" , idevinfo->class_type) ;  
+  
+
 }

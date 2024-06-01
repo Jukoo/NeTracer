@@ -20,51 +20,31 @@ int main (int ac , char **av )
   bpf_u_int32 netip , maskip ; 
   pcap_t  *handler ;
  
-  /* 
-  if (ac == 1)   
-    errx(~0 , "<ipv4 address>"); 
-  char *ip = av[ac-1] ; 
-  
-  if (net_is_valid_ipv4_addr(av[ac-1]) != 0 )   
-    errx(~0 , "Not a valid ip address") ; 
-  */ 
- 
   int status =   pcap_findalldevs(&netdevs ,errbuf) ;
   
   if (~0 == status){
     errx(PCAP_ERROR , "pcap_findalldevs : %s" , errbuf) ; 
   }
   
-  active_inetdevs  *idevices = nullable ;  
+  active_inetdevs  *idevices = nullable ; 
   idevices = net_found_active_interface(netdevs , idevices); 
   
   if (!idevices)  
     errx(-1, "No Connected adaptater found") ; 
 
-  
   list_inetdevs(idevices) ; 
   
   char *idevname = net_get_device_name(idevices); 
 
-  idev_info_t  * idevinfo =  (void *) 0 ;  
- 
-  
+  idev_info_t  * idevinfo =   nullable ;  
   idevinfo = net_get_idev_info(idevname);  
                                         
-  //show_idevinfo(idevinfo) ;  
-  
-  if (idevinfo) { 
-    printf("--> ip  %s \n", idevinfo->ipv4netnum) ; 
-    printf("--> subnet  %s \n", idevinfo->subnet_mask) ; 
-    printf("--> class type %s\n" , idevinfo->class_type) ; 
-  } 
-
-
-   return 0 ; 
-
-   //! ADD filter  here 
+  show_idevinfo(idevinfo) ;  
+   
+  //! ADD filter  here 
   //handler = net_stream_on(null ,) ; // if null start on first devices  
-  handler =  pcap_open_live(idevices  , BUFSIZ,  0 ,10, errbuf)  ; 
+  
+  handler =  pcap_open_live(idevname  , BUFSIZ,  0 ,10, errbuf)  ; 
   if (!handler){
     free(idevices) ; 
     pcap_freealldevs(netdevs) ; 
@@ -74,8 +54,8 @@ int main (int ac , char **av )
   pcap_loop(handler, 0, net_handler , nullable) ; 
 
   free(idevices) ; 
-  pcap_freealldevs(netdevs); 
-
+  pcap_freealldevs(netdevs);  
+  pcap_close(handler) ; 
   
   return 0 ; 
 }

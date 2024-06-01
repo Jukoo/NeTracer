@@ -24,9 +24,15 @@
 #include <stdint.h> 
 #include <sys/socket.h>
 
+#include "attr.h" 
+
 #ifndef  lib_pcap_pcap_h 
   #error "require libpcap"
 #endif
+
+/*! \brief The Ethernet header is always 14 bytes  */
+#define  ETHER_HEADER_LEN  0x0E 
+
 
 typedef uint8_t  bint ; 
 
@@ -92,7 +98,7 @@ struct __idev_info_t {
  */
 struct  __active_inet_devices   
 {
-   char  *idev ;   
+   char  *idev ;   //! inet device name  
    struct __active_inet_devices *  next ;  
 } ; 
 
@@ -109,7 +115,7 @@ net_is_valid_ipv4_addr(char * __restrict__ __ipv4_addr);
 
 /** 
  * @fn net_found_active_interface 
- * @brief look which adapter is connected 
+ * @brief look which adapter is connected act like a filter  that select only the connectd devices  
  * @param pcap_if_t *  interfaces 
  * @param char *      
  * @return  char *   null for failure 
@@ -156,4 +162,13 @@ append_inetdev(struct __active_inet_devices  *  , struct __active_inet_devices  
 
 NETH  void 
 list_inetdevs (const struct __active_inet_devices * __inet_devices) ; 
+
+
+NETH void _nn 
+show_idevinfo(const struct __idev_info_t * __idevinfo)  ; 
+
+
+
+
+
 #endif 
