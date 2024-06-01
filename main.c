@@ -19,15 +19,6 @@ int main (int ac , char **av )
   pcap_if_t  * netdevs ;
   bpf_u_int32 netip , maskip ; 
   pcap_t  *handler ;
-
-
-  char *ip_address =  ac > 1  ? av[ac-1] :  nullable ; 
-  
-  if (ip_address) { 
-    if (net_is_valid_ipv4_addr(ip_address) !=  0) 
-      errx(~0 ,  "Not a valid ip address"); 
-  }
-
  
   int status =   pcap_findalldevs(&netdevs ,errbuf) ;
   
@@ -35,7 +26,7 @@ int main (int ac , char **av )
     errx(PCAP_ERROR , "pcap_findalldevs : %s" , errbuf) ; 
   }
   
-  active_inetdevs  *idevices = nullable ;  
+  active_inetdevs  *idevices = nullable ; 
   idevices = net_found_active_interface(netdevs , idevices); 
 
   char *default_devices  =  shiftback_idevname(idevices , 1) ; 
@@ -45,25 +36,19 @@ int main (int ac , char **av )
   if (!idevices)  
     errx(-1, "No Connected adaptater found") ; 
 
-   list_inetdevs(idevices) ; 
-  /* 
-
-  if(PCAP_ERROR == pcap_lookupnet(device , &netip , &maskip , errbuf)) {
-    free(device) ; 
-    pcap_freealldevs(netdevs) ;
-    errx(PCAP_ERROR , "pcap_lookupnet: %s" , errbuf) ; 
-  }
-
-   * */
-   struct __raw_iproto  rip ; 
-   (void *)net_translate(&rip , 2,  netip , maskip) ; 
-
- 
-  printf("ipv4 : %s\n",  rip.ipv4) ; 
-  printf("net mask : %s\n" , rip.subnet_mask) ; 
+  list_inetdevs(idevices) ; 
   
+  char *idevname = net_get_device_name(idevices); 
+
+  idev_info_t  * idevinfo =   nullable ;  
+  idevinfo = net_get_idev_info(idevname);  
+                                        
+  show_idevinfo(idevinfo) ;  
+   
+  //! ADD filter  here 
   //handler = net_stream_on(null ,) ; // if null start on first devices  
-  handler =  pcap_open_live(idevices  , BUFSIZ,  0 ,10, errbuf)  ; 
+  
+  handler =  pcap_open_live(idevname  , BUFSIZ,  0 ,10, errbuf)  ; 
   if (!handler){
     free(idevices) ; 
     pcap_freealldevs(netdevs) ; 
@@ -73,8 +58,8 @@ int main (int ac , char **av )
   pcap_loop(handler, 0, net_handler , nullable) ; 
 
   free(idevices) ; 
-  pcap_freealldevs(netdevs); 
-
+  pcap_freealldevs(netdevs);  
+  pcap_close(handler) ; 
   
   return 0 ; 
 }
