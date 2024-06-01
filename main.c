@@ -29,16 +29,13 @@ int main (int ac , char **av )
   active_inetdevs  *idevices = nullable ; 
   idevices = net_found_active_interface(netdevs , idevices); 
 
-  char *default_devices  =  shiftback_idevname(idevices , 1) ; 
-
-  fprintf(stdout , " device name  default  is  %s \n" ,  default_devices)  ; 
 
   if (!idevices)  
     errx(-1, "No Connected adaptater found") ; 
 
-  list_inetdevs(idevices) ; 
+  //list_idevs(idevices) ; 
   
-  char *idevname = net_get_device_name(idevices); 
+  char *idevname  = get_default_interface(idevices) ;   
 
   idev_info_t  * idevinfo =   nullable ;  
   idevinfo = net_get_idev_info(idevname);  
@@ -46,7 +43,6 @@ int main (int ac , char **av )
   show_idevinfo(idevinfo) ;  
    
   //! ADD filter  here 
-  //handler = net_stream_on(null ,) ; // if null start on first devices  
   
   handler =  pcap_open_live(idevname  , BUFSIZ,  0 ,10, errbuf)  ; 
   if (!handler){

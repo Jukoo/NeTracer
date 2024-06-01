@@ -45,19 +45,20 @@ net_found_active_interface(pcap_if_t  * raw_net_interface , struct __active_inet
       }
 
       new_active_inetdev->idev = strdup(raw_net_interface->name) ;   
-      
+      inetdevs = append_inetdev(inetdevs ,new_active_inetdev) ; 
     } 
-      inetdevs = append_inetdev(inetdevs ,   new_active_inetdev) ; 
+    
+    raw_net_interface = raw_net_interface->next ;  
 
     } //!  endif (interface_status_check == PCAP_IF_CONNECTION_STATUS_CONNECTED)  
     
-    raw_net_interface = raw_net_interface->next ;  
-  }
-
-
+ 
   return inetdevs ; 
-
+  
 }
+
+
+
 
 struct __idev_info_t  * 
 net_get_idev_info(const char  * restrict   idevname) 
@@ -85,7 +86,8 @@ net_get_idev_info(const char  * restrict   idevname)
    address[1].s_addr = subnetip ;  
    
    
-   //!get  net ip address  
+   memcpy(idev_info->idevname ,  idevname , strlen(idevname)) ; 
+   //!get  net ip address 
    memcpy(idev_info->ipv4netnum , inet_ntoa( *(address+0) ) , NET_IPV4_LENGTH) ; 
    
    //!get subnet mask 
@@ -158,7 +160,6 @@ append_inetdev(struct  __active_inet_devices  * idevs , struct __active_inet_dev
 {
   //! hold the previews  
   struct __active_inet_devices * hold  = idevs ;  
-  printf("new inet device  %s \n" , new_inetdev->idev) ;
   
   //! permutation 
   idevs =  new_inetdev ; 
@@ -167,49 +168,55 @@ append_inetdev(struct  __active_inet_devices  * idevs , struct __active_inet_dev
   return idevs  ;   
 }
 
-void list_inetdevs (const struct __active_inet_devices  * inetdevs) 
+int  list_inetdevs (const struct __active_inet_devices  * inetdevs , verbose_t  show )  
 { 
   struct __active_inet_devices * inetdevs_hold= (struct __active_inet_devices *) inetdevs ;   
-  
+  int ninterfaces = 0 ;  
   while (inetdevs_hold != nullable) 
   {
-    printf("-> %s\n" , inetdevs_hold->idev) ; 
+    if (show) 
+      show(inetdevs_hold)  ; 
+
     inetdevs_hold =  inetdevs_hold->next ; 
+    ninterfaces++  ;
   }
+  
+  return ninterfaces ; 
 }
 
 char * shiftback_idevname(const struct __active_inet_devices *  idevs_list ,  int index) 
 {
-  int i  = nidevs - index ;   
-  if (i <= ~0) return nullable ; 
-   
-  int x = 1  ; 
+  int  total_interfaces =  list_inetdevs(idevs_list , nullable) ;
+  if ( index > total_interfaces   ||  index   <= ~0 )  
+  {
+     fprintf(stderr, "Index Out of Ranges  and negtive value is not allowed !\n"); 
+     return nullable; 
+  } 
+
+  int i  =   abs(total_interfaces -  index ) ;   
+  int j  = 1; 
+  
   struct __active_inet_devices * node  = (struct __active_inet_devices * ) idevs_list ; 
   
   while ( node != nullable  ) 
   {  
-    if  ( x == i  ) 
+    if  ( j == i) 
     {
-        memcpy(interface_device_name , node->idev ,  strlen(node->idev)) ;
-       
-        break ;   
+      memcpy(interface_device_name , node->idev ,  strlen(node->idev)) ;
+      break ;   
     }
     node = node->next;
-    x++;  
+    j++; 
   }
 
  return  interface_device_name ;  
 }  
 
-char * net_get_device_name(struct __active_inet_devices  *idevs)  
-{
-   
-  return   (idevs->idev && strlen(idevs->idev) > 0 )  ?  idevs->idev   : nullable  ;  
-}
 
 void show_idevinfo(const struct __idev_info_t *  idevinfo) 
 {
-  if (!idevinfo)return ; 
+  if (!idevinfo)return ;
+  fprintf(stdout , "interface::%s\n" , idevinfo->idevname) ; 
   fprintf(stdout , "net ip:: %s \n" , idevinfo->ipv4netnum ) ;  
   fprintf(stdout , "subnet mask:: %s \n" , idevinfo->subnet_mask ) ;  
   fprintf(stdout , "class Type :: %s \n" , idevinfo->class_type) ;  

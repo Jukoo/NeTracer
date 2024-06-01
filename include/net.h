@@ -76,13 +76,14 @@ enum  {
 typedef struct __active_inet_devices active_inetdevs ; 
 typedef struct __idev_info_t   idev_info_t ; 
 
+typedef void (*verbose_t)(active_inetdevs *)  ;   
 /**  
 
  * @brief hold information about interface device  
  * such as iterface device name  ip address  and subnet  
  */
 struct __idev_info_t { 
-  char * idevname ; 
+  char idevname[0xa] ; 
   union { 
     char ipv4netnum[NET_IPV4_LENGTH] ; 
     char * ipv6 ; //! not supported yet !!  
@@ -139,14 +140,6 @@ NETH  struct __idev_info_t *
 net_get_idev_info (const  char  * __restrict__  __interface_device) ;  
 
 
-/**
- * @brief get the active  interface device name on top of  the list 
- */
-
-NETH char *  
-net_get_device_name(struct __active_inet_devices   * __list_of_active_devices_interface) __nonnull((1))  ; 
-
-
 /*
  * @fn net_handler
  * @brief custom routine 
@@ -160,8 +153,21 @@ NETH struct  __active_inet_devices *
 append_inetdev(struct __active_inet_devices  *  , struct __active_inet_devices  * new_idev)  ; 
  
 
-NETH  void 
-list_inetdevs (const struct __active_inet_devices * __inet_devices) ; 
+static inline void  show (struct __active_inet_devices * idevs) 
+{
+  fprintf(stdout , "interface :: %s \n" ,  idevs->idev) ;  
+}
+
+NETH  int 
+list_inetdevs (const struct __active_inet_devices * __inet_devices,  verbose_t ) ;  
+#define  list_idevs(__active_inet_devices)  \
+  list_inetdevs(__active_inet_devices  , show) ; 
+
+NETH char *
+shiftback_idevname(const struct  __active_inet_devices *  , int index ) ;
+#define  get_default_interface(__active_inet_devices)\
+  shiftback_idevname(__active_inet_devices, 0)
+
 
 
 NETH void _nn 
