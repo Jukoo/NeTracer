@@ -14,8 +14,6 @@
 int main (int ac , char **av ) 
 {
 
-  if (ac == 1)   
-    errx(~0 , "<ipv4 address>"); 
 
   char errbuf[PCAP_ERRBUF_SIZE] ={0} ; 
   pcap_if_t  * netdevs ;
@@ -23,10 +21,12 @@ int main (int ac , char **av )
   pcap_t  *handler ;
 
 
-  char *ip = av[ac-1] ; 
+  char *ip_address =  ac > 1  ? av[ac-1] :  nullable ; 
   
-  if (net_is_valid_ipv4_addr(av[ac-1]) != 0 )   
-    errx(~0 , "Not a valid ip address") ; 
+  if (ip_address) { 
+    if (net_is_valid_ipv4_addr(ip_address) !=  0) 
+      errx(~0 ,  "Not a valid ip address"); 
+  }
 
  
   int status =   pcap_findalldevs(&netdevs ,errbuf) ;
@@ -37,7 +37,11 @@ int main (int ac , char **av )
   
   active_inetdevs  *idevices = nullable ;  
   idevices = net_found_active_interface(netdevs , idevices); 
-  
+
+  char *default_devices  =  shiftback_idevname(idevices , 1) ; 
+
+  fprintf(stdout , " device name  default  is  %s \n" ,  default_devices)  ; 
+
   if (!idevices)  
     errx(-1, "No Connected adaptater found") ; 
 

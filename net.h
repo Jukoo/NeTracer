@@ -48,6 +48,9 @@ struct  __active_inet_devices
 } ; 
 
 
+extern int nidevs ; 
+extern char interface_device_name[0x14] ;  
+
 extern   char error_buff[PCAP_ERRBUF_SIZE] ; 
 /**
  * @fn bint is_valid_ipv4_address
@@ -60,9 +63,9 @@ net_is_valid_ipv4_addr(char * __restrict__ __ipv4_addr);
 
 /** 
  * @fn net_found_active_interface 
- * @brief look which adapter is connected 
+ * @brief  find  active  device  interface  
  * @param pcap_if_t *  interfaces 
- * @param char *      
+ * @param struct __active_inet_devices * 
  * @return  char *   null for failure 
  * !TODO : struct  __device_t {  
  *    char * device ; 
@@ -72,8 +75,6 @@ net_is_valid_ipv4_addr(char * __restrict__ __ipv4_addr);
  */ 
 NETH struct __active_inet_devices *
 net_found_active_interface(pcap_if_t * __raw_interface ,  struct __active_inet_devices * ); 
-
-
 
 /**
  *  @fn net_translate 
@@ -103,5 +104,8 @@ append_inetdev(struct __active_inet_devices  *  , struct __active_inet_devices  
  
 
 NETH  void 
-list_inetdevs (const struct __active_inet_devices * __inet_devices) ; 
+list_inetdevs (const struct __active_inet_devices * __inet_devices) ;
+
+NETH char * 
+shiftback_idevname(const struct  __active_inet_devices *  , int index ) ; 
 #endif 

@@ -1,0 +1,3 @@
+/home/umar/Desktop/WorkShop/NeTracer/build/CMakeFiles/netracer.dir
+/home/umar/Desktop/WorkShop/NeTracer/build/CMakeFiles/edit_cache.dir
+/home/umar/Desktop/WorkShop/NeTracer/build/CMakeFiles/rebuild_cache.dir

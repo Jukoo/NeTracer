@@ -1,0 +1,1 @@
+/usr/bin/cc -g CMakeFiles/netracer.dir/main.c.o CMakeFiles/netracer.dir/net.c.o -o netracer  -lpcap 

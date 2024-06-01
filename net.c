@@ -11,6 +11,8 @@
 #include <assert.h> 
 
 #include "net.h"
+int  nidevs  = 0 ; 
+char  interface_device_name[0x14] = {0}; 
 
 char error_buff[PCAP_ERRBUF_SIZE] = {0} ; 
 bint net_is_valid_ipv4_addr(char * restrict ipv4_addr_string)
@@ -51,7 +53,8 @@ net_found_active_interface(pcap_if_t  * raw_net_interface , struct __active_inet
 
       new_active_inetdev->idev = strdup(connected_inetdev) ;  
       
-      inetdevs = append_inetdev(inetdevs ,   new_active_inetdev) ; 
+      inetdevs = append_inetdev(inetdevs ,   new_active_inetdev) ;
+      nidevs++  ; 
     } 
     
     raw_net_interface = raw_net_interface->next ;  
@@ -131,6 +134,7 @@ void net_handler(u_char * device , const struct pcap_pkthdr * pkhdr ,  const u_c
 struct __active_inet_devices * append_inetdev(struct  __active_inet_devices  * idevs , struct __active_inet_devices *  new_inetdev) 
 { 
   struct __active_inet_devices * hold  = idevs ; //new_inetdev;  
+
   printf("new inet device  %s \n" , new_inetdev->idev) ; 
   idevs =  new_inetdev ; 
   idevs->next  = hold ; 
@@ -148,4 +152,27 @@ void list_inetdevs (const struct __active_inet_devices  * inetdevs)
     printf("-> %s\n" , inetdevs_hold->idev) ; 
     inetdevs_hold =  inetdevs_hold->next ; 
   }
+}
+
+char * shiftback_idevname(const struct __active_inet_devices *  idevs_list ,  int index) 
+{
+  int i  = nidevs - index ;   
+  if (i <= ~0) return nullable ; 
+   
+  int x = 1  ; 
+  struct __active_inet_devices * node  = (struct __active_inet_devices * ) idevs_list ; 
+  
+  while ( node != nullable  ) 
+  {  
+    if  ( x == i  ) 
+    {
+        memcpy(interface_device_name , node->idev ,  strlen(node->idev)) ;
+       
+        break ;   
+    }
+    node = node->next;
+    x++;  
+  }
+
+ return  interface_device_name ;  
 }
