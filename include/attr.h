@@ -1,4 +1,9 @@
 
+#ifdef __ptr_t 
+  #define nullable  (__ptr_t) 0 
+#else 
+  #define nullable ( void * ) 0 
+#endif  
 
 #if __has_attribute(contructor)
   #define   _ctor   __attribute__((contructor)) 
